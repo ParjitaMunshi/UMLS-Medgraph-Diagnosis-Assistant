@@ -1,0 +1,6 @@
+neo4j
+requests
+spacy
+transformers
+langchain
+pandas
