@@ -1,0 +1,35 @@
+// Count the rows in the CSV file
+LOAD CSV FROM 'file:///heart.csv' AS row
+RETURN count(row);
+
+// Display the first 3 rows from the CSV file
+LOAD CSV FROM 'file:///heart.csv' AS row
+RETURN row
+LIMIT 3;
+
+// Load CSV and create Patient nodes with attributes
+LOAD CSV WITH HEADERS FROM 'file:///heart.csv' AS row
+MERGE (p:Patient {id: row.Age + "_" + row.Sex})
+SET p.age = toInteger(row.Age), 
+    p.sex = row.Sex, 
+    p.chestPainType = row.ChestPainType, 
+    p.restingBP = toInteger(row.RestingBP), 
+    p.cholesterol = toInteger(row.Cholesterol), 
+    p.fastingBS = toInteger(row.FastingBS), 
+    p.restingECG = row.RestingECG, 
+    p.maxHR = toInteger(row.MaxHR), 
+    p.exerciseAngina = row.ExerciseAngina, 
+    p.oldpeak = toFloat(row.Oldpeak), 
+    p.stSlope = row.ST_Slope, 
+    p.heartDisease = toInteger(row.HeartDisease);
+
+// Create relationships between patients and their conditions
+LOAD CSV WITH HEADERS FROM 'file:///heart.csv' AS row
+MATCH (p:Patient {id: row.Age + "_" + row.Sex})
+MERGE (c:Condition {name: row.ChestPainType})
+MERGE (p)-[:HAS_CONDITION]->(c);
+
+// Query patients with heart disease and their conditions
+MATCH (p:Patient)-[:HAS_CONDITION]->(c:Condition)
+WHERE p.heartDisease = 1
+RETURN p.age, p.sex, c.name;
